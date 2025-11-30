@@ -50,7 +50,7 @@ test_access_token = None
 @allure.epic("API Testing, Kelas Otomesyen")
 @allure.feature("Autetikasi dan Manajemen Produk")
 @allure.story("Test API dengan Credentials yang valid")
-@allure.description("Test ini untuk memastikan bahhwa API dapat melakukan autentikasi pengguna dan membuat produk dengan benar.")
+@allure.description("Test ini untuk memastikan bahwa API dapat melakukan autentikasi pengguna dan membuat produk dengan benar.")
 @allure.severity(allure.severity_level.CRITICAL)
 def test_login_success():
     # step hitapi
@@ -70,7 +70,11 @@ def test_login_success():
       assert data['expires_in'] == 3600
 
       test_access_token = data['access_token']
-    
+@allure.epic("API Testing, Kelas Otomesyen")
+@allure.feature("Autetikasi dan Manajemen Produk")
+@allure.story("Test API dengan Credentials yang invalid")
+@allure.description("Test ini untuk memastikan bahwa API dapat melakukan autentikasi pengguna dan membuat produk dengan benar.")
+@allure.severity(allure.severity_level.CRITICAL)
 def test_login_unsuccess(): #without api key
     # step hitapi
     with allure.step("1. Unsuccess login"):
@@ -84,6 +88,11 @@ def test_login_unsuccess(): #without api key
       assert response.status_code == 400
 
 # CREATE PROD
+@allure.epic("API Testing, Kelas Otomesyen")
+@allure.feature("Post Create Product")
+@allure.story("Test API Post Create Product")
+@allure.description("Test ini untuk memastikan bahwa API dapat membuat produk dengan benar.")
+@allure.severity(allure.severity_level.CRITICAL)
 def test_create_product_success():
     with allure.step("1. Menyiapkan data produk baru"):
       print(test_access_token)
