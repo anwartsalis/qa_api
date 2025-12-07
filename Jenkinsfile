@@ -33,31 +33,30 @@ pipeline {
                 }
             }
         }
-    }
-    
-    post {
-        always {
-            script {
-                // Generate Allure Report
-                allure includeProperties: false, 
-                       jdk: '', 
-                       properties: [
-                           [key: 'allure.report.name', value: 'Laporan Saya'], 
-                           [key: 'allure.report.title', value: 'Test Execution Report']
-                       ], 
-                       resultPolicy: 'LEAVE_AS_IS', 
-                       results: [[path: 'allure-results']]
-                
-                // Prepare notification
-                def allureReportUrl = "${env.BUILD_URL}allure/"
-                def status = currentBuild.result ?: 'SUCCESS'
-                
-                // Get test summary
-                def summary = ''
-                try {
-                    if (fileExists('allure-report/widgets/summary.json')) {
-                        def summaryJson = readJSON file: 'allure-report/widgets/summary.json'
-                        summary = """
+        
+        stage('Generate Report & Notify') {
+            steps {
+                script {
+                    // Generate Allure Report
+                    allure includeProperties: false, 
+                           jdk: '', 
+                           properties: [
+                               [key: 'allure.report.name', value: 'Laporan Saya'], 
+                               [key: 'allure.report.title', value: 'Test Execution Report']
+                           ], 
+                           resultPolicy: 'LEAVE_AS_IS', 
+                           results: [[path: 'allure-results']]
+                    
+                    // Prepare notification
+                    def allureReportUrl = "${env.BUILD_URL}allure/"
+                    def status = currentBuild.result ?: 'SUCCESS'
+                    
+                    // Get test summary
+                    def summary = ''
+                    try {
+                        if (fileExists('allure-report/widgets/summary.json')) {
+                            def summaryJson = readJSON file: 'allure-report/widgets/summary.json'
+                            summary = """
 Test Summary:
 Total: ${summaryJson.statistic.total}
 Passed: ${summaryJson.statistic.passed}
@@ -66,14 +65,14 @@ Broken: ${summaryJson.statistic.broken}
 Skipped: ${summaryJson.statistic.skipped}
 
 """
+                        }
+                    } catch (Exception e) {
+                        echo "Could not read summary: ${e.message}"
+                        summary = ""
                     }
-                } catch (Exception e) {
-                    echo "Could not read summary: ${e.message}"
-                    summary = ""
-                }
-                
-                // Build message
-                def message = """
+                    
+                    // Build message
+                    def message = """
 *Test Automation Report*
 
 Project: ${env.JOB_NAME}
@@ -84,14 +83,36 @@ Date: ${new Date().format('dd-MM-yyyy HH:mm')}
 
 ${summary}Allure Report: ${allureReportUrl}
 Jenkins Build: ${env.BUILD_URL}
+                    """.replaceAll("'", "'\\\\''")
+                    
+                    // Send to Telegram
+                    sh """
+                    curl -s -X POST https://api.telegram.org/bot\${TELEGRAM_BOT_TOKEN}/sendMessage \
+                    -d chat_id=\${TELEGRAM_CHAT_ID} \
+                    -d parse_mode=Markdown \
+                    -d disable_web_page_preview=false \
+                    -d text='${message}'
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        failure {
+            script {
+                def message = """
+Build Failed
+
+Job: ${env.JOB_NAME}
+Build: #${env.BUILD_NUMBER}
+
+Console: ${env.BUILD_URL}console
                 """.replaceAll("'", "'\\\\''")
                 
-                // Send to Telegram
                 sh """
                 curl -s -X POST https://api.telegram.org/bot\${TELEGRAM_BOT_TOKEN}/sendMessage \
                 -d chat_id=\${TELEGRAM_CHAT_ID} \
-                -d parse_mode=Markdown \
-                -d disable_web_page_preview=false \
                 -d text='${message}'
                 """
             }
