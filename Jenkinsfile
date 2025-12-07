@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        TELEGRAM_BOT_TOKEN = credentials('1882130871:AAHZVRwcIFKlxdsId2buT0w_3wdaZzAEtpQ')
+        TELEGRAM_BOT_TOKEN = '1882130871:AAHZVRwcIFKlxdsId2buT0w_3wdaZzAEtpQ'
         TELEGRAM_CHAT_ID = '727162514'
     }
 
@@ -41,17 +41,17 @@ pipeline {
                     allure includeProperties: false, 
                            jdk: '', 
                            properties: [
-                               [key: 'allure.report.name', value: 'Laporan Saya'], 
+                               [key: 'allure.report.name', value: 'Report nih'], 
                                [key: 'allure.report.title', value: 'Test Execution Report']
                            ], 
                            resultPolicy: 'LEAVE_AS_IS', 
                            results: [[path: 'allure-results']]
                     
-                    // Prepare notification
+                    // Prepare notif
                     def allureReportUrl = "${env.BUILD_URL}allure/"
                     def status = currentBuild.result ?: 'SUCCESS'
                     
-                    // Get test summary
+                    // test summary
                     def summary = ''
                     try {
                         if (fileExists('allure-report/widgets/summary.json')) {
@@ -71,7 +71,7 @@ Skipped: ${summaryJson.statistic.skipped}
                         summary = ""
                     }
                     
-                    // Build message
+                    // Bikin pesen chat
                     def message = """
 *Test Automation Report*
 
@@ -85,10 +85,10 @@ ${summary}Allure Report: ${allureReportUrl}
 Jenkins Build: ${env.BUILD_URL}
                     """.replaceAll("'", "'\\\\''")
                     
-                    // Send to Telegram
+                    // Kirim Telegram
                     sh """
-                    curl -s -X POST https://api.telegram.org/bot\${TELEGRAM_BOT_TOKEN}/sendMessage \
-                    -d chat_id=\${TELEGRAM_CHAT_ID} \
+                    curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
+                    -d chat_id=${TELEGRAM_CHAT_ID} \
                     -d parse_mode=Markdown \
                     -d disable_web_page_preview=false \
                     -d text='${message}'
@@ -100,21 +100,23 @@ Jenkins Build: ${env.BUILD_URL}
     
     post {
         failure {
-            script {
-                def message = """
+            node('') {
+                script {
+                    def message = """
 Build Failed
 
 Job: ${env.JOB_NAME}
 Build: #${env.BUILD_NUMBER}
 
 Console: ${env.BUILD_URL}console
-                """.replaceAll("'", "'\\\\''")
-                
-                sh """
-                curl -s -X POST https://api.telegram.org/bot\${TELEGRAM_BOT_TOKEN}/sendMessage \
-                -d chat_id=\${TELEGRAM_CHAT_ID} \
-                -d text='${message}'
-                """
+                    """.replaceAll("'", "'\\\\''")
+                    
+                    sh """
+                    curl -s -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
+                    -d chat_id=${TELEGRAM_CHAT_ID} \
+                    -d text='${message}'
+                    """
+                }
             }
         }
     }
