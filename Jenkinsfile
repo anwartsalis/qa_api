@@ -6,8 +6,8 @@ pipeline {
     }
 
     environment {
-        TELEGRAM_BOT_TOKEN = '1882130871:AAHZVRwcIFKlxdsId2buT0w_3wdaZzAEtpQ'
-        TELEGRAM_CHAT_ID = '727162514'
+        TELEGRAM_BOT_TOKEN = '7293069411:AAHmtG7oQfJbFFABuXgWJIStTRcDqBSaX0w'
+        TELEGRAM_CHAT_ID = '-4112006641'
     }
 
     stages {
@@ -17,7 +17,7 @@ pipeline {
                     docker.image('python:3.13.9-slim').inside("--network jenkins-network") {
                         stage('Install Dependencies') {
                             sh '''
-                                cd /var/jenkins_home/workspace/SQA_Code_Along
+                                cd /var/jenkins_home/workspace/pengecekan_api
                                 ls -la
                                 pip install -r requirements.txt
                             '''
@@ -25,7 +25,7 @@ pipeline {
                         
                         stage('Run Tests') {
                             sh '''
-                                cd /var/jenkins_home/workspace/SQA_Code_Along
+                                cd /var/jenkins_home/workspace/pengecekan_api
                                 pytest test_api.py -v --alluredir=allure-results
                             '''
                         }
