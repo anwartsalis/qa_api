@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        allure 'allure'
+        allure 'allure-manual'
     }
 
     environment {
